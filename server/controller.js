@@ -42,5 +42,118 @@ module.exports = {
             console.log(err)
             res.status(500).send(err)
         })
+    },
+
+    createFighter: (req, res) => {
+        // grab data from req.body
+        const {name, power, hp, type} = req.body
+        
+        // sequelize query
+        sequelize.query(`
+            INSERT INTO fighters
+            (name, power, hp, type)
+            VALUES 
+            ('${name}', ${power}, ${hp}, '${type}');
+        `)
+
+        // handle response with .then and .catch
+            .then((dbRes) => {
+                console.log('createFighter success!')
+                res.status(200).send(dbRes[0])
+            })
+            .catch((theseHands) => {
+                console.log('Error with createFighter')
+                console.log(theseHands)
+                res.status(500).send(theseHands)
+            })
+    },
+
+    getFightersList: (req, res) => {
+        // get names and ids from fighters table
+        sequelize.query(`
+            SELECT name, id FROM fighters;
+        `)
+
+        // handle response with .then and .catch
+            .then((dbRes) => {
+                console.log('getFightersList success!')
+                res.status(200).send(dbRes[0])
+            })
+            .catch((theseHands) => {
+                console.log('Error with getFightersList')
+                console.log(theseHands)
+                res.status(500).send(theseHands)
+            })
+    },
+
+    createWeapon: (req, res) => {
+        
+        const {name, power, owner} = req.body
+        
+        sequelize.query(`
+            INSERT INTO weapons
+            (name, power, owner_id)
+            VALUES 
+            ('${name}', ${power}, ${owner})
+            RETURNING *;
+        `)
+            .then((dbRes) => {
+                console.log('createWeapon success!')
+                res.status(200).send(dbRes[0])
+            })
+            .catch((theseHands) => {
+                console.log('Error with createWeapon')
+                console.log(theseHands)
+                res.status(500).send(theseHands)
+            })
+    },
+
+    getFightersWeapons: (req, res) => {
+        // select all data from fighters table
+        // Join weapons table with fighters table - specifically on id
+        // Setup aliases for everything but hp and type
+        // handle our response
+
+        sequelize.query(`
+            SELECT
+                fighters.id AS fighter_id,
+                fighters.name AS fighter,
+                fighters.power AS fighter_power,
+                hp,
+                type,
+                weapons.id AS weapon_id,
+                weapons.name AS weapon,
+                weapons.power AS weapon_power
+            FROM fighters
+            JOIN weapons
+            ON fighters.id = weapons.owner_id;
+        `)
+            .then((dbRes) => {
+                console.log('getFightersWeapons success!')
+                res.status(200).send(dbRes[0])
+            })
+            .catch((theseHands) => {
+                console.log('Error with getFightersWeapons')
+                console.log(theseHands)
+                res.status(500).send(theseHands)
+            })
+    },
+
+    deleteWeapon: (req, res) => {
+        const {id} = req.params
+
+        sequelize.query(`
+            DELETE FROM weapons
+            WHERE id = ${id}
+        `)
+        .then((dbRes) => {
+            console.log('deleteWeapon success!')
+            res.status(200).send(dbRes[0])
+        })
+        .catch((theseHands) => {
+            console.log('Error with deleteWeapon')
+            console.log(theseHands)
+            res.status(500).send(theseHands)
+        })
     }
 }
